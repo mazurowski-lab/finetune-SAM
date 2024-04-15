@@ -159,7 +159,7 @@ eval_dataset = Public_dataset(args,args.img_folder, args.mask_folder, val_img_li
 ```
 And you need to edit the block for the prompt encoder input accordingly:
 ```
-		sparse_emb, dense_emb = sam_fine_tune.prompt_encoder(
+sparse_emb, dense_emb = sam_fine_tune.prompt_encoder(
             points=points,
             boxes=None,
             masks=None,
