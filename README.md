@@ -156,7 +156,7 @@ tensorboard --logdir args.dir_checkpoint/log --ip 0.0.0.0
 Then open the browser to visualize the loss.
 
 
-### Additional interatice modes
+### Additional interative modes
 if you want to use prompt_based training, just edit the dataset into **prompt_type='point' or prompt_type='box' or prompt_type='hybrid'**, for example:
 ```
 train_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['all'],normalize_type='sam',prompt_type='point')
