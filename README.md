@@ -2,11 +2,11 @@
 Authors: [Hanxue Gu](https://scholar.google.com/citations?hl=en&user=aGjCpQUAAAAJ&view_op=list_works&sortby=pubdate), [Haoyu Dong](https://scholar.google.com/citations?user=eZVEUCIAAAAJ&hl=en), [Jichen Yang](https://scholar.google.com/citations?user=jGv3bRUAAAAJ&hl=en), [Maciej A. Mazurowski](https://scholar.google.com/citations?user=HlxjJPQAAAAJ&hl=en)
 
 This is the official code for our paper: [How to build the best medical image segmentation algorithm using foundation models: a comprehensive empirical study with Segment Anything Model](), where we explore three popular scenerios when fine-tuning foundation models to customized datasets in the medical imaging field: (1) only a single labeled dataset; (2) multiple labeled datasets for different tasks; and (3) multiple labeled and unlabeled datasets; and we design three common experimental setups, as shown in figure 1.
-![[finetune_strategy_v9.png]]
+<img src=https://github.com/mazurowski-lab/finetune-SAM/blob/main/finetune_strategy_v9.png' width='100%'>
 Fig1: Overview of general fine-tuning strategies based on different levels of dataset availability.
 
 Our work summarizes and evaluates existing fine-tuning strategies with various backbone architectures,  model components, and fine-tuning algorithms across 18 combinations, and 17 datasets covering all common radiology modalities. 
-![[finetune_combination_v3.png]]
+<img src=https://github.com/mazurowski-lab/finetune-SAM/blob/main/finetune_combination_v3.png' width='100%'>
 Fig2: Visualization of task-specific fine-tuning architectures selected in our study: including 3 encoder architecture $\times$ 2 model components $\times$ 3 vanilla/PEFT methods = 18 choices.
 
 Based on our extensive experiments, we found that:
