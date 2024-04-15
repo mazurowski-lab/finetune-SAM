@@ -16,6 +16,11 @@ Based on our extensive experiments, we found that:
 
 To use our codebase, we provide (a) codes to fine-tune on your own medical imaging dataset on either automatic/prompt-based setting, (b) pretrained weights we got from Setup 3 using task-agnostic self-supervised learning, which we found as a good pretrained weights instead of initial SAM providing a better performance for downstream tasks.
 ## a): fine-tune to one single task-specific dataset 
+### Step 0: setup environment
+```bash
+conda env create -f environment.yml
+```
+
 ### Step 1: dataset preparation.
 Please first prepare your images and masks pairs in 2D slices. If your original dataset is in 3D format, please preprocess it and save images/masks as 2D slices.
 
