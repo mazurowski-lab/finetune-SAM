@@ -181,7 +181,7 @@ If you want to use MedSAM as pretrained weights, please refer to [MedSAM](https:
 
 ## c): fine-tune from task-agnostic self-supervised prertained weights
 In our paper, we found that training in Setup 3, which starts from self-supervised weights and then fine-tune to one single customized dataset using Parameter Efficient Learning to fine-tune both Encoder/Decoder provides the best model.
-To use our self-supervised pretrained weights, please refer to [SSLSAM](https://drive.google.com/drive/folders/1JAoy-Mh5QgxXsjWtQhMjOX16dN1kytLQ).\
+To use our self-supervised pretrained weights, please refer to [SSLSAM](https://drive.google.com/drive/folders/1JAoy-Mh5QgxXsjWtQhMjOX16dN1kytLQ).
 
 ## Acknowledgement
 This work was supported by Duke Univeristy.
