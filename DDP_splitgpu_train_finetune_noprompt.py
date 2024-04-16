@@ -2,6 +2,7 @@
 from models.sam import SamPredictor, sam_model_registry
 from models.sam.utils.transforms import ResizeLongestSide
 from skimage.measure import label
+from models.sam_LoRa import LoRA_Sam
 #Scientific computing 
 import numpy as np
 import os
