@@ -2,6 +2,7 @@
 from models.sam import SamPredictor, sam_model_registry
 from models.sam.utils.transforms import ResizeLongestSide
 from skimage.measure import label
+from models.sam_LoRa import LoRA_Sam
 #Scientific computing 
 import numpy as np
 import os
@@ -41,7 +42,7 @@ def main(args,test_image_list):
     elif args.finetune_type = 'lora':
         sam = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.sam_ckpt),num_classes=cls_num)
         sam_fine_tune = LoRA_Sam(args,sam,r=4).to('cuda').sam
-        sam_fine_tune.load_state_dict(torch.load(dir_checkpoint + '/checkpoint_best.pth'), strict = False)
+        sam_fine_tune.load_state_dict(torch.load(args.dir_checkpoint + '/checkpoint_best.pth'), strict = False)
         
     sam_fine_tune = sam_fine_tune.to('cuda').eval()
     class_iou = torch.zeros(cls_num,dtype=torch.float)
