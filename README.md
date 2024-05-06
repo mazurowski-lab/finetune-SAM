@@ -183,6 +183,11 @@ If you want to use MedSAM as pretrained weights, please refer to [MedSAM](https:
 In our paper, we found that training in Setup 3, which starts from self-supervised weights and then fine-tuning to one customized dataset using Parameter Efficient Learning to fine-tune both Encoder/Decoder, provides the best model.
 To use our self-supervised pretrained weights, please refer to [SSLSAM](https://drive.google.com/drive/folders/1JAoy-Mh5QgxXsjWtQhMjOX16dN1kytLQ).
 
+## ToDOlist:
+ - [x] add the branch of codes for automatic multi-cls segmentation
+ - [ ] add the branch of codes for prompt-based multi-cls segmentation. output has two channels and random select one target at one time during training.
+
+
 ## Acknowledgement
 This work was supported by Duke Univeristy.
 We built these codes based on the following:
