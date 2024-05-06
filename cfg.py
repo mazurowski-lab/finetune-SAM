@@ -12,8 +12,9 @@ def parse_args():
 
     parser.add_argument('-finetune_type', type=str, default='adapter', help='normalization type, pick among vanilla,adapter,lora')
     parser.add_argument('-normalize_type', type=str, default='sam', help='normalization type, pick between sam or medsam')
+    
     parser.add_argument('-dir_checkpoint', type=str, default='checkpoints', help='the checkpoint folder to save final model')
-
+    parser.add_argument('-num_cls', type=int, default=2, help='the number of output channels (need to be your target cls num +1)')
     parser.add_argument('-epochs', type=int, default=200, help='the number of largest epochs to train')
     parser.add_argument('-sam_ckpt', type=str, default='sam_vit_b_01ec64.pth', help='the path to the checkpoint to load')
     

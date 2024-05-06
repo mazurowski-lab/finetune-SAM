@@ -28,7 +28,7 @@ from torch.nn.functional import one_hot
 from pathlib import Path
 from tqdm import tqdm
 from utils.losses import DiceLoss
-from utils.dsc import dice_coeff
+from utils.dsc import dice_coeff_multi_class
 import cv2
 import monai
 from utils.utils import vis_image
@@ -43,7 +43,7 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
     else:
         b_lr = args.lr
     
-    sam = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.sam_ckpt),num_classes=2)
+    sam = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.sam_ckpt),num_classes=args.num_cls)
     if args.finetune_type == 'adapter':
         for n, value in sam.named_parameters():
             if "Adapter" not in n: # only update parameters in adapter
@@ -148,7 +148,7 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
                                   )
                     loss = criterion1(pred,msks.float()) + criterion2(pred,torch.squeeze(msks.long(),1))
                     eval_loss +=loss.item()
-                    dsc_batch = dice_coeff((pred[:,1,:,:].cpu()>0).long(),msks.cpu().long()).item()
+                    dsc_batch = dice_coeff_multi_class(pred.argmax(dim=1).cpu(), torch.squeeze(msks.long(),1).cpu().long(),args.num_cls)
                     dsc+=dsc_batch
 
                 eval_loss /= (i+1)
@@ -182,8 +182,8 @@ if __name__ == "__main__":
     num_workers = 8
     if_vis = True
 
-    train_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['all'],normalize_type='sam',if_prompt=False)
-    eval_dataset = Public_dataset(args,args.img_folder, args.mask_folder, val_img_list,phase='val',targets=['all'],normalize_type='sam',if_prompt=False)
+    train_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['multi_all'],normalize_type='sam',if_prompt=False)
+    eval_dataset = Public_dataset(args,args.img_folder, args.mask_folder, val_img_list,phase='val',targets=['multi_all'],normalize_type='sam',if_prompt=False)
     trainloader = DataLoader(train_dataset, batch_size=args.b, shuffle=True, num_workers=num_workers)
     valloader = DataLoader(eval_dataset, batch_size=args.b, shuffle=False, num_workers=num_workers)
 
