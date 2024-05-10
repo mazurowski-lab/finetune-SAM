@@ -143,7 +143,8 @@ args.num_cls = n+1
 
 # put the dataset's parameter for 'target' as 'multi_all', for example:
 Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['multi_all'],normalize_type='sam',if_prompt=False)
-'''
+```
+
 3. if you actually have multiple different targets but you want to select a subset, such as one target from your mask for trianing:
 ```
 Todo
