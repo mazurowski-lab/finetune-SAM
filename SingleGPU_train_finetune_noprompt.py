@@ -36,6 +36,7 @@ import cfg
 # Use the arguments
 args = cfg.parse_args()
 # you need to modify based on the layer of adapters you are choosing to add
+# comment it if you are not using adapter
 args.encoder_adapter_depths = [0,1,2,3]
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -51,7 +52,7 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
         for n, value in sam.named_parameters():
             if "Adapter" not in n: # only update parameters in adapter
                 value.requires_grad = False
-         print('if update encoder:',args.if_update_encoder)
+        print('if update encoder:',args.if_update_encoder)
         print('if image encoder adapter:',args.if_encoder_adapter)
         print('if mask decoder adapter:',args.if_mask_decoder_adapter)
         if args.if_encoder_adapter:
