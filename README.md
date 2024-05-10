@@ -72,6 +72,8 @@ args.if_update_encoder = False
 - If you want to add adapter blocks on the image encoder and mask decoder both:
 ```
 args.if_mask_decoder_adapter=True
+
+args.if_update_encoder = True
 args.if_encoder_adapter=True
 # You can pick the image encoder blocks by adding adapters
 args.encoder_adapter_depths = range(0,12)
@@ -85,7 +87,8 @@ args.if_mask_decoder_adapter=True
 -  If you want to add LoRA blocks on the image encoder and mask decoder both:
 ```
 # define which blocks you would like to add LoRAs, if [] is empty, it will be added at **each** block.
-args.if_encoder_lora_layer = True 
+args.if_update_encoder = True
+args.if_encoder_lora_layer = True
 args.encoder_lora_layer = []
 args.if_decoder_lora_layer = True  
 ```
