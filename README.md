@@ -129,7 +129,7 @@ args.gpu_fractions = [0.5,0.5] # the fraction of image encoder on each GPU
 ```
 # set the output channels as 2 (background, object)
 args.num_cls = 2
-'''
+```
 
 If your target objects actually have multiple labels but you want to combine them as binary:
 ```
