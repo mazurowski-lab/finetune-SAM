@@ -34,8 +34,11 @@ import monai
 from utils.utils import vis_image
 import cfg
 # Use the arguments
+args = cfg.parse_args()
+# you need to modify based on the layer of adapters you are choosing to add
+args.encoder_adapter_depths = [0,1,2,3]
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '5'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def train_model(trainloader,valloader,dir_checkpoint,epochs):
     if args.if_warmup:
@@ -48,7 +51,12 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
         for n, value in sam.named_parameters():
             if "Adapter" not in n: # only update parameters in adapter
                 value.requires_grad = False
+         print('if update encoder:',args.if_update_encoder)
+        print('if image encoder adapter:',args.if_encoder_adapter)
         print('if mask decoder adapter:',args.if_mask_decoder_adapter)
+        if args.if_encoder_adapter:
+            print('added adapter layers:',args.encoder_adapter_depths)
+        
     elif args.finetune_type == 'vanilla' and args.if_update_encoder==False:      
         for n, value in sam.image_encoder.named_parameters():
             value.requires_grad = False
@@ -72,16 +80,16 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
     for epoch in pbar:
         sam.train()
         train_loss = 0
-        for i,data in enumerate(trainloader):
+        for i,data in enumerate(tqdm(trainloader)):
             imgs = data['image'].cuda()
             msks = torchvision.transforms.Resize((args.out_size,args.out_size))(data['mask'])
             msks = msks.cuda()
 
             if args.if_update_encoder:
+                img_emb = sam.image_encoder(imgs)
+            else:
                 with torch.no_grad():
                     img_emb = sam.image_encoder(imgs)
-            else:
-                img_emb = sam.image_encoder(imgs)
             
             # get default embeddings
             sparse_emb, dense_emb = sam.prompt_encoder(
@@ -168,6 +176,13 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
                     print('largest DSC now: {}'.format(dsc))
                     Path(dir_checkpoint).mkdir(parents=True,exist_ok = True)
                     torch.save(sam.state_dict(),dir_checkpoint + '/checkpoint_best.pth')
+                    
+                    path_to_json = os.path.join(args.dir_checkpoint, "args.json")
+                    args_dict = vars(args)
+                    args_dict['largest_val_dsc'] = dsc
+                    # Write the dictionary to a JSON file
+                    with open(path_to_json, 'w') as json_file:
+                        json.dump(args_dict, json_file, indent=4)
                 elif (epoch-last_update_epoch)>20:
                     # the network haven't been updated for 20 epochs
                     print('Training finished###########')
@@ -177,11 +192,10 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
                 
                 
 if __name__ == "__main__":
-    args = cfg.parse_args()
     dataset_name = args.dataset_name
     print('train dataset: {}'.format(dataset_name)) 
-    train_img_list = args.img_folder + dataset_name + '/train_5shot.csv'
-    val_img_list = args.img_folder + dataset_name + '/val_5shot.csv'
+    train_img_list = args.img_folder  + '/train_slices_info.txt'
+    val_img_list = args.img_folder + '/val_slices_info.txt'
     
     num_workers = 8
     if_vis = True
