@@ -98,7 +98,13 @@ class Public_dataset(Dataset):
         return False
 
     def setup_transformations(self):
-        transformations = [transforms.Resize((self.args.image_size, self.args.image_size)), transforms.ToTensor()]
+        if self.phase =='train':
+            transformations = [transforms.RandomEqualize(p=0.1),
+                 transforms.ColorJitter(brightness=0.3, contrast=0.3,saturation=0.3,hue=0.3),
+                              ]
+        else:
+            transformations = []
+        transformations.append(transforms.ToTensor())
         if self.normalize_type == 'sam':
             transformations.append(transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
         elif self.normalize_type == 'medsam':
@@ -115,8 +121,17 @@ class Public_dataset(Dataset):
             mask_path = mask_path[1:]
         img = Image.open(os.path.join(self.img_folder, img_path.strip())).convert('RGB')
         msk = Image.open(os.path.join(self.mask_folder, mask_path.strip())).convert('L')
+
+        img = transforms.Resize((self.args.image_size,self.args.image_size))(img)
+        msk = transforms.Resize((self.args.image_size,self.args.image_size),InterpolationMode.NEAREST)(msk)
         
         img, msk = self.apply_transformations(img, msk)
+
+        if 'combine_all' in self.targets: # combine all targets as single target
+            msk = np.array(np.array(msk,dtype=int)>0,dtype=int)
+        else:
+            msk = np.array(msk,dtype=int)
+        
         return self.prepare_output(img, msk, img_path, mask_path)
 
     def apply_transformations(self, img, msk):
@@ -133,6 +148,8 @@ class Public_dataset(Dataset):
         return img, msk
 
     def prepare_output(self, img, msk, img_path, mask_path):
+        if len(msk.shape)==2:
+            msk = torch.unsqueeze(torch.tensor(msk,dtype=torch.long),0)
         output = {'image': img, 'mask': msk, 'img_name': img_path}
         if self.if_prompt:
             # Assuming get_first_prompt and get_top_boxes functions are defined and handle prompt creation
@@ -140,11 +157,14 @@ class Public_dataset(Dataset):
                 prompt, mask_now = get_first_prompt(msk.numpy(), self.region_type)
                 pc = torch.tensor(prompt[:, :2], dtype=torch.float)
                 pl = torch.tensor(prompt[:, -1], dtype=torch.float)
-                output.update({'point_coords': pc, 'point_labels': pl})
+                msk = torch.unsqueeze(torch.tensor(mask_now,dtype=torch.long),0)
+                output.update({'point_coords': pc, 'point_labels': pl,'mask':msk})
             elif self.prompt_type == 'box':
                 prompt, mask_now = get_top_boxes(msk.numpy(), self.region_type)
                 box = torch.tensor(prompt, dtype=torch.float)
-                output.update({'boxes': box})
+                # the ground truth are only the selected masks
+                msk = torch.unsqueeze(torch.tensor(mask_now,dtype=torch.long),0)
+                output.update({'boxes': box,'mask':msk})
             elif self.prompt_type == 'hybrid':
                 point_prompt, _ = get_first_prompt(msk.numpy(), self.region_type)
                 box_prompt, _ = get_top_boxes(msk.numpy(), this.region_type)
