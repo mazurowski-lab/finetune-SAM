@@ -77,8 +77,13 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
             msks = torchvision.transforms.Resize((args.out_size,args.out_size))(data['mask'])
             msks = msks.cuda()
 
-            img_emb= sam.image_encoder(imgs)    
-            # get default embeddings 
+            if args.if_update_encoder:
+                with torch.no_grad():
+                    img_emb = sam.image_encoder(imgs)
+            else:
+                img_emb = sam.image_encoder(imgs)
+            
+            # get default embeddings
             sparse_emb, dense_emb = sam.prompt_encoder(
                 points=None,
                 boxes=None,
