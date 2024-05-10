@@ -15,6 +15,12 @@ Based on our extensive experiments, we found that:
 4. further training SAM with self-supervised learning can improve final model performance.
 
 To use our codebase, we provide (a) codes to fine-tune your medical imaging dataset on either automatic/prompt-based setting, (b) pretrained weights we got from Setup 3 using task-agnostic self-supervised learning, which we found as good pretrained weights instead of initial SAM providing better performance for downstream tasks.
+
+## Bug fixes:
+- [X] 10/May/2024, fixed the bug that when we updated the dataset.py at May 6th for multi class support, the mask resize processing was accidently forgotten.
+- [X]  10/May/2024, fixed the bug that the provided demo for single gpu trianing only support updating decoder but the image encoder's gradients were not calculated.
+
+
 ## a): fine-tune to one single task-specific dataset 
 ### Step 0: setup environment
 ```bash
@@ -116,6 +122,31 @@ if the network is large and you cannot fit into one single GPU, you can use our 
 ```
 args.if_split_encoder_gpus = True
 args.gpu_fractions = [0.5,0.5] # the fraction of image encoder on each GPU
+```
+
+### Multi-cls segmentation VS. binary segmentation
+1. if you want to do binary segmentation:
+```
+# set the output channels as 2 (background, object)
+args.num_cls = 2
+'''
+
+If your target objects actually have multiple labels but you want to combine them as binary:
+```
+# put the dataset's parameter for 'target' as 'combine_all', for example:
+Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['combine_all'],normalize_type='sam',if_prompt=False)
+```
+2. if you want to do multi-cls segmentation:
+```
+# set the output channels as num_of_target_objects + 1 (background, object1, object2,...)
+args.num_cls = n+1
+
+# put the dataset's parameter for 'target' as 'multi_all', for example:
+Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['multi_all'],normalize_type='sam',if_prompt=False)
+'''
+3. if you actually have multiple different targets but you want to select a subset, such as one target from your mask for trianing:
+```
+Todo
 ```
 
 ### Example bash file for running the training
