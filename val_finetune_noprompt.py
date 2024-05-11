@@ -32,29 +32,30 @@ import cv2
 import monai
 from utils.utils import vis_image
 import cfg
+from argparse import Namespace
+import json
 
 def main(args,test_image_list):
-    test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, test_img_list,phase='val',targets=['all'],if_prompt=False)
+    # change to 'combine_all' if you want to combine all targets into 1 cls
+    test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, test_img_list,phase='val',targets=['multi_all'],if_prompt=False)
     testloader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1)
-    cls_num = 2 # edit the class num 
-    if args.finetune_type == 'adapter' or args.finetune_type == 'vanilla'
-        sam_fine_tune = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.dir_checkpoint,'checkpoint_best.pth'),num_classes=cls_num)
-    elif args.finetune_type = 'lora':
-        sam = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.sam_ckpt),num_classes=cls_num)
+    if args.finetune_type == 'adapter' or args.finetune_type == 'vanilla':
+        sam_fine_tune = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.dir_checkpoint,'checkpoint_best.pth'),num_classes=args.num_cls)
+    elif args.finetune_type == 'lora':
+        sam = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.sam_ckpt),num_classes=args.num_cls)
         sam_fine_tune = LoRA_Sam(args,sam,r=4).to('cuda').sam
         sam_fine_tune.load_state_dict(torch.load(args.dir_checkpoint + '/checkpoint_best.pth'), strict = False)
         
     sam_fine_tune = sam_fine_tune.to('cuda').eval()
-    class_iou = torch.zeros(cls_num,dtype=torch.float)
-    cls_dsc = torch.zeros(cls_num,dtype=torch.float)
+    class_iou = torch.zeros(args.num_cls,dtype=torch.float)
+    cls_dsc = torch.zeros(args.num_cls,dtype=torch.float)
     eps = 1e-9
-    dsc_img = []
     img_name_list = []
     pred_msk = []
     test_img = []
     test_gt = []
 
-    for i,data in enumerate(testloader,1):
+    for i,data in enumerate(tqdm(testloader)):
         imgs = data['image'].to('cuda')
         msks = torchvision.transforms.Resize((args.out_size,args.out_size))(data['mask'])
         msks = msks.to('cuda')
@@ -75,28 +76,29 @@ def main(args,test_image_list):
                             dense_prompt_embeddings=dense_emb, 
                             multimask_output=True,
                           )
+           
+        pred_fine = pred_fine.argmax(dim=1)
 
+        
         pred_msk.append(pred_fine.cpu())
         test_img.append(imgs.cpu())
         test_gt.append(msks.cpu())
-        pred_fine = pred_fine[:,1,:,:]
-        yhat = (pred_fine>=0).cpu().flatten()
+        yhat = (pred_fine).cpu().long().flatten()
         y = msks.cpu().flatten()
 
-        for j in range(2):
+        for j in range(args.num_cls):
             y_bi = y==j
             yhat_bi = yhat==j
             I = ((y_bi*yhat_bi).sum()).item()
             U = (torch.logical_or(y_bi,yhat_bi).sum()).item()
             class_iou[j] += I/(U+eps)
 
-        for cls in range(cls_num):
-            mask_pred_cls = ((pred_fine>=0).cpu()==cls).float()
+        for cls in range(args.num_cls):
+            mask_pred_cls = ((pred_fine).cpu()==cls).float()
             mask_gt_cls = (msks.cpu()==cls).float()
             cls_dsc[cls] += dice_coeff(mask_pred_cls,mask_gt_cls).item()
         #print(i)
 
-        dsc_img.append(dice_coeff(mask_pred_cls,mask_gt_cls).item())
     class_iou /=(i+1)
     cls_dsc /=(i+1)
 
@@ -111,7 +113,18 @@ def main(args,test_image_list):
     print('class iou:',class_iou)
 if __name__ == "__main__":
     args = cfg.parse_args()
+
+    if 1: # if you want to load args from taining setting or you want to identify your own setting
+        args_path = f"{args.dir_checkpoint}/args.json"
+
+        # Reading the args from the json file
+        with open(args_path, 'r') as f:
+            args_dict = json.load(f)
+        
+        # Converting dictionary to Namespace
+        args = Namespace(**args_dict)
+        
     dataset_name = args.dataset_name
     print('train dataset: {}'.format(dataset_name)) 
-    test_img_list = args.img_folder + dataset_name + '/val_5shot.csv'
+    test_img_list =  args.img_folder + '/train_slices_info8.txt'
     main(args,test_img_list)
