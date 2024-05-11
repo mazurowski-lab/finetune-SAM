@@ -1194,3 +1194,50 @@ def IOU(pm, gt):
     a = np.sum(np.bitwise_and(pm, gt))
     b = np.sum(pm) + np.sum(gt) - a +1e-8
     return a / b
+
+# Calculate the percentile values
+def torch_percentile(tensor, percentile):
+    k = 1 + round(.01 * float(percentile) * (tensor.numel() - 1))
+    return tensor.reshape(-1).kthvalue(k).values.item()
+
+def inverse_normalize(tensor, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
+    mean = torch.as_tensor(mean, dtype=tensor.dtype, device=tensor.device)
+    std = torch.as_tensor(std, dtype=tensor.dtype, device=tensor.device)
+    if mean.ndim == 1:
+        mean = mean.view(-1, 1, 1)
+    if std.ndim == 1:
+        std = std.view(-1, 1, 1)
+    tensor.mul_(std).add_(mean)
+    return tensor
+
+
+
+def remove_small_objects(array_2d, min_size=30):
+    """
+    Removes small objects from a 2D array using only NumPy.
+
+    :param array_2d: Input 2D array.
+    :param min_size: Minimum size of objects to keep.
+    :return: 2D array with small objects removed.
+    """
+    # Label connected components
+    structure = np.ones((3, 3), dtype=int)  # Define connectivity
+    labeled, ncomponents = label(array_2d, structure)
+
+    # Iterate through labeled components and remove small ones
+    for i in range(1, ncomponents + 1):
+        locations = np.where(labeled == i)
+        if len(locations[0]) < min_size:
+            array_2d[locations] = 0
+
+    return array_2d
+
+def create_box_mask(boxes,imgs):
+    b,_,w,h = imgs.shape
+    box_mask = torch.zeros((b,w,h))
+    for k in range(b):
+        k_box = boxes[k]
+        for box in k_box:
+            x1,y1,x2,y2 = int(box[0]),int(box[1]),int(box[2]),int(box[3])
+            box_mask[k,y1:y2,x1:x2] = 1
+    return box_mask
