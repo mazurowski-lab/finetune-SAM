@@ -33,13 +33,14 @@ import cv2
 import monai
 from utils.utils import vis_image
 import cfg
+import json
 # Use the arguments
 args = cfg.parse_args()
 # you need to modify based on the layer of adapters you are choosing to add
 # comment it if you are not using adapter
 args.encoder_adapter_depths = [0,1,2,3]
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 def train_model(trainloader,valloader,dir_checkpoint,epochs):
     if args.if_warmup:
@@ -141,7 +142,7 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
             dsc = 0
             sam.eval()
             with torch.no_grad():
-                for i,data in enumerate(valloader):
+                for i,data in enumerate(tqdm(valloader)):
                     imgs = data['image'].cuda()
                     msks = torchvision.transforms.Resize((args.out_size,args.out_size))(data['mask'])
                     msks = msks.cuda()
@@ -175,15 +176,7 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
                     val_largest_dsc = dsc
                     last_update_epoch = epoch
                     print('largest DSC now: {}'.format(dsc))
-                    Path(dir_checkpoint).mkdir(parents=True,exist_ok = True)
                     torch.save(sam.state_dict(),dir_checkpoint + '/checkpoint_best.pth')
-                    
-                    path_to_json = os.path.join(args.dir_checkpoint, "args.json")
-                    args_dict = vars(args)
-                    args_dict['largest_val_dsc'] = dsc
-                    # Write the dictionary to a JSON file
-                    with open(path_to_json, 'w') as json_file:
-                        json.dump(args_dict, json_file, indent=4)
                 elif (epoch-last_update_epoch)>20:
                     # the network haven't been updated for 20 epochs
                     print('Training finished###########')
@@ -195,11 +188,16 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
 if __name__ == "__main__":
     dataset_name = args.dataset_name
     print('train dataset: {}'.format(dataset_name)) 
-    train_img_list = args.img_folder  + '/train_slices_info.txt'
-    val_img_list = args.img_folder + '/val_slices_info.txt'
+    train_img_list = args.img_folder  + '/train.txt'
+    val_img_list = args.img_folder + '/val.txt'
     
     num_workers = 8
     if_vis = True
+    Path(args.dir_checkpoint).mkdir(parents=True,exist_ok = True)
+    path_to_json = os.path.join(args.dir_checkpoint, "args.json")
+    args_dict = vars(args)
+    with open(path_to_json, 'w') as json_file:
+        json.dump(args_dict, json_file, indent=4)
 
     train_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['multi_all'],normalize_type='sam',if_prompt=False)
     eval_dataset = Public_dataset(args,args.img_folder, args.mask_folder, val_img_list,phase='val',targets=['multi_all'],normalize_type='sam',if_prompt=False)
