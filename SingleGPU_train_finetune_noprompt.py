@@ -38,9 +38,9 @@ import json
 args = cfg.parse_args()
 # you need to modify based on the layer of adapters you are choosing to add
 # comment it if you are not using adapter
-args.encoder_adapter_depths = [0,1,2,3]
+#args.encoder_adapter_depths = [0,1,2,3]
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 def train_model(trainloader,valloader,dir_checkpoint,epochs):
     if args.if_warmup:
@@ -59,10 +59,14 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
         if args.if_encoder_adapter:
             print('added adapter layers:',args.encoder_adapter_depths)
         
-    elif args.finetune_type == 'vanilla' and args.if_update_encoder==False:      
+    elif args.finetune_type == 'vanilla' and args.if_update_encoder==False:   
+        print('if update encoder:',args.if_update_encoder)
         for n, value in sam.image_encoder.named_parameters():
             value.requires_grad = False
     elif args.finetune_type == 'lora':
+        print('if update encoder:',args.if_update_encoder)
+        print('if image encoder lora:',args.if_encoder_lora_layer)
+        print('if mask decoder lora:',args.if_decoder_lora_layer)
         sam = LoRA_Sam(args,sam,r=4).sam
     sam.to('cuda')
         
@@ -188,8 +192,8 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
 if __name__ == "__main__":
     dataset_name = args.dataset_name
     print('train dataset: {}'.format(dataset_name)) 
-    train_img_list = args.img_folder  + '/train.txt'
-    val_img_list = args.img_folder + '/val.txt'
+    train_img_list = args.train_img_list
+    val_img_list = args.val_img_list
     
     num_workers = 8
     if_vis = True
@@ -198,9 +202,10 @@ if __name__ == "__main__":
     args_dict = vars(args)
     with open(path_to_json, 'w') as json_file:
         json.dump(args_dict, json_file, indent=4)
+    print(args.targets)
 
-    train_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=['multi_all'],normalize_type='sam',if_prompt=False)
-    eval_dataset = Public_dataset(args,args.img_folder, args.mask_folder, val_img_list,phase='val',targets=['multi_all'],normalize_type='sam',if_prompt=False)
+    train_dataset = Public_dataset(args,args.img_folder, args.mask_folder, train_img_list,phase='train',targets=[args.targets],normalize_type='sam',if_prompt=False)
+    eval_dataset = Public_dataset(args,args.img_folder, args.mask_folder, val_img_list,phase='val',targets=[args.targets],normalize_type='sam',if_prompt=False)
     trainloader = DataLoader(train_dataset, batch_size=args.b, shuffle=True, num_workers=num_workers)
     valloader = DataLoader(eval_dataset, batch_size=args.b, shuffle=False, num_workers=num_workers)
 
