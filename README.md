@@ -18,7 +18,12 @@ To use our codebase, we provide (a) codes to fine-tune your medical imaging data
 
 ## Bug fixes:
 - [X] 10/May/2024, fixed the bug that when we updated the dataset.py at May 6th for multi class support, the mask resize processing was accidently forgotten.
-- [X]  10/May/2024, fixed the bug that the provided demo for single gpu trianing only support updating decoder but the image encoder's gradients were not calculated.
+- [X] 10/May/2024, fixed the bug that the provided demo for single gpu trianing only support updating decoder but the image encoder's gradients were not calculated.
+
+## Updated functions:
+- [X] 15/May/2024, add functions to auto save training args and load args for validation; save your time for manual definition.
+- [X] 15/May/2024, add two jupyter-notebooks showing examples about how to make predictions on 3D volumes/2D pngs without ground truth; and for visualization.
+- [ ] 
 
 
 ## a): fine-tune to one single task-specific dataset 
