@@ -24,7 +24,8 @@ To use our codebase, we provide (a) codes to fine-tune your medical imaging data
 ## Updated functions:
 - [X] May-15-2024, add functions to auto save training args and load args for validation; save your time for manual definition.
 - [X] May-15-2024, add two jupyter-notebooks showing examples about how to make predictions on 3D volumes/2D pngs without ground truth; and for visualization.
-- [X] May-15-2024, provide two additional example demos. 
+- [X] May-15-2024, provide two additional example demos.
+- [X] June-10-2024, add spatial transformation choice in dataset.py
 
 
 ## a): fine-tune to one single task-specific dataset 
