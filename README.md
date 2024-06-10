@@ -19,6 +19,7 @@ To use our codebase, we provide (a) codes to fine-tune your medical imaging data
 ## Bug fixes:
 - [X] May-10-2024, fixed the bug that when we updated the dataset.py at May 6th for multi class support, the mask resize processing was accidently forgotten.
 - [X] May-10-2024, fixed the bug that the provided demo for single gpu trianing only support updating decoder but the image encoder's gradients were not calculated.
+- [X] June-10-2024, fixed the bug that cfg.py was not updated as the same version of train.sh which didn't include two configs as 'train_img_list' and 'val_img_list'.
 
 ## Updated functions:
 - [X] May-15-2024, add functions to auto save training args and load args for validation; save your time for manual definition.
@@ -28,10 +29,14 @@ To use our codebase, we provide (a) codes to fine-tune your medical imaging data
 
 ## a): fine-tune to one single task-specific dataset 
 ### Step 0: setup environment
+If using conda enviroment:
 ```bash
 conda env create -f environment.yml
 ```
-
+If directly using pip
+```bash
+pip install -r requirements.txt
+```
 ### Step 1: dataset preparation.
 Please prepare your images and mask pairs in 2D slices first. If your original dataset is in 3D format, please preprocess it and save images/masks as 2D slices.
 
