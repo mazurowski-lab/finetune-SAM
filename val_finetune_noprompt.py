@@ -37,7 +37,7 @@ import json
 
 def main(args,test_image_list):
     # change to 'combine_all' if you want to combine all targets into 1 cls
-    test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, test_img_list,phase='val',targets=['multi_all'],if_prompt=False)
+    test_dataset = Public_dataset(args,args.img_folder, args.mask_folder, test_img_list,phase='val',targets=[args.targets],if_prompt=False)
     testloader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1)
     if args.finetune_type == 'adapter' or args.finetune_type == 'vanilla':
         sam_fine_tune = sam_model_registry[args.arch](args,checkpoint=os.path.join(args.dir_checkpoint,'checkpoint_best.pth'),num_classes=args.num_cls)
@@ -126,5 +126,5 @@ if __name__ == "__main__":
         
     dataset_name = args.dataset_name
     print('train dataset: {}'.format(dataset_name)) 
-    test_img_list =  args.img_folder + '/train_slices_info8.txt'
+    test_img_list =  args.img_folder + '/train_slices_info_sampled_1000.txt'
     main(args,test_img_list)
