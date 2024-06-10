@@ -9,6 +9,9 @@ def parse_args():
     
     parser.add_argument('-img_folder', type=str, default='./datasets/', help='the folder putting images')
     parser.add_argument('-mask_folder', type=str, default='./datasets/', help='the folder putting masks')
+    parser.add_argument('-train_img_list', type=str, default='./datasets/train.csv')
+    parser.add_argument('-val_img_list', type=str,default='./datasets/val.csv')
+    parser.add_argument('-targets', type=str,default='combine_all')
 
     parser.add_argument('-finetune_type', type=str, default='adapter', help='normalization type, pick among vanilla,adapter,lora')
     parser.add_argument('-normalize_type', type=str, default='sam', help='normalization type, pick between sam or medsam')
@@ -54,10 +57,10 @@ def parse_args():
 
     parser.add_argument('-if_update_encoder', type=bool, default=False , help='if update_image_encoder')
     parser.add_argument('-if_encoder_adapter', type=bool, default=False , help='if add adapter to encoder')
+    
     parser.add_argument('-encoder-adapter-depths', type=list, default=[0,1,10,11] , help='the depth of blocks to add adapter')
     parser.add_argument('-if_mask_decoder_adapter', type=bool, default=False , help='if add adapter to mask decoder')
     parser.add_argument('-decoder_adapt_depth', type=int, default=2, help='the depth of the decoder adapter')
-    parser.add_argument('-encoder_depth_layer', type=list, default=[0,1,2,3], help='the layer of the depth adapter')
     
     parser.add_argument('-if_encoder_lora_layer', type=bool, default=False , help='if add lora to encoder')
     parser.add_argument('-if_decoder_lora_layer', type=bool, default=False , help='if add lora to decoder')
