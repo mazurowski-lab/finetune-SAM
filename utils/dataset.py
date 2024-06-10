@@ -18,7 +18,7 @@ from torchvision.transforms import InterpolationMode
 #from .utils.transforms import ResizeLongestSide
 
 class Public_dataset(Dataset):
-    def __init__(self,args, img_folder, mask_folder, img_list,phase='train',sample_num=50,channel_num=1,normalize_type='sam',crop=False,crop_size=1024,targets=['femur','hip'],part_list=['all'],cls=1,if_prompt=True,prompt_type='point',region_type='largest_3',label_mapping=None):
+    def __init__(self,args, img_folder, mask_folder, img_list,phase='train',sample_num=50,channel_num=1,normalize_type='sam',crop=False,crop_size=1024,targets=['femur','hip'],part_list=['all'],cls=-1,if_prompt=True,prompt_type='point',region_type='largest_3',label_mapping=None,if_spatial=True,delete_empty_masks=True):
         '''
         target: 'combine_all': combine all the targets into binary segmentation
                 'multi_all': keep all targets as multi-cls segmentation
@@ -27,6 +27,7 @@ class Public_dataset(Dataset):
         normalzie_type: 'sam' or 'medsam', if sam, using transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]); if medsam, using [0,1] normalize
         cls: the target cls for segmentation
         prompt_type: point or box
+        if_patial: if add spatial transformations or not
         
         '''
         super(Public_dataset, self).__init__()
@@ -40,6 +41,7 @@ class Public_dataset(Dataset):
         self.targets = targets
         self.part_list = part_list
         self.cls = cls
+        self.delete_empty_masks = delete_empty_masks
         self.if_prompt = if_prompt
         self.prompt_type = prompt_type
         self.region_type = region_type
@@ -48,11 +50,12 @@ class Public_dataset(Dataset):
         self.label_mapping = label_mapping
         self.load_label_mapping()
         self.load_data_list(img_list)
+        self.if_spatial = if_spatial
         self.setup_transformations()
 
     def load_label_mapping(self):
         # Load the predefined label mappings from a pickle file
-        # teh format is {'label_name1':cls_idx1, 'label_name2':,cls_idx2}
+        # the format is {'label_name1':cls_idx1, 'label_name2':,cls_idx2}
         if self.label_mapping:
             with open(self.label_mapping, 'rb') as handle:
                 self.segment_names_to_labels = pickle.load(handle)
@@ -85,23 +88,33 @@ class Public_dataset(Dataset):
         """
         Determine whether to keep an image based on the mask and part list conditions.
         """
-        mask_array = np.array(msk, dtype=int)
-        if 'combine_all' in self.targets:
-            return np.any(mask_array > 0)
-        elif 'multi_all' in self.targets:
+        if self.delete_empty_masks:
+            mask_array = np.array(msk, dtype=int)
+            #print(np.unique(mask_array))
+            if 'combine_all' in self.targets:
+                return np.any(mask_array > 0)
+            elif 'multi_all' in self.targets:
+                return np.any(mask_array > 0)
+            elif any(target in self.targets for target in self.segment_names_to_labels):
+                target_classes = [self.segment_names_to_labels[target][1] for target in self.targets if target in self.segment_names_to_labels]
+                return any(mask_array == cls for cls in target_classes)
+            elif self.cls>0:
+                return np.any(mask_array == self.cls)
+            if self.part_list[0] != 'all':
+                return any(part in mask_path for part in self.part_list)
+            return False
+        else:
             return True
-        elif any(target in self.targets for target in self.segment_names_to_labels):
-            target_classes = [self.segment_names_to_labels[target][1] for target in self.targets if target in self.segment_names_to_labels]
-            return any(mask_array == cls for cls in target_classes)
-        if self.part_list[0] != 'all':
-            return any(part in mask_path for part in self.part_list)
-        return False
 
     def setup_transformations(self):
         if self.phase =='train':
             transformations = [transforms.RandomEqualize(p=0.1),
                  transforms.ColorJitter(brightness=0.3, contrast=0.3,saturation=0.3,hue=0.3),
                               ]
+            # if add spatial transform 
+            if self.if_spatial:
+                self.transform_spatial = transforms.Compose([transforms.RandomResizedCrop(self.crop_size, scale=(0.5, 1.5), interpolation=InterpolationMode.NEAREST),
+                         transforms.RandomRotation(45, interpolation=InterpolationMode.NEAREST)])
         else:
             transformations = []
         transformations.append(transforms.ToTensor())
@@ -129,9 +142,10 @@ class Public_dataset(Dataset):
 
         if 'combine_all' in self.targets: # combine all targets as single target
             msk = np.array(np.array(msk,dtype=int)>0,dtype=int)
-        else:
+        elif 'multi_all' in self.targets:
             msk = np.array(msk,dtype=int)
-        
+        elif self.cls>0:
+            msk = np.array(msk==self.cls,dtype=int)
         return self.prepare_output(img, msk, img_path, mask_path)
 
     def apply_transformations(self, img, msk):
@@ -139,6 +153,15 @@ class Public_dataset(Dataset):
             img, msk = self.apply_crop(img, msk)
         img = self.transform_img(img)
         msk = torch.tensor(np.array(msk, dtype=int), dtype=torch.long)
+
+        if self.phase=='train' and self.if_spatial:
+            mask_cls = np.array(msk,dtype=int)
+            mask_cls = np.repeat(mask_cls[np.newaxis,:, :], 3, axis=0)
+            both_targets = torch.cat((img.unsqueeze(0), torch.tensor(mask_cls).unsqueeze(0)),0)
+            transformed_targets = self.transform_spatial(both_targets)
+            img = transformed_targets[0]
+            mask_cls = np.array(transformed_targets[1][0].detach(),dtype=int)
+            msk = torch.tensor(mask_cls)
         return img, msk
 
     def apply_crop(self, img, msk):
