@@ -8,6 +8,9 @@ Our work summarizes and evaluates existing fine-tuning strategies with various b
 ![Fig2: Visualization of task-specific fine-tuning architectures selected in our study: including 3 encoder architecture $\times$ 2 model components $\times$ 3 vanilla/PEFT methods = 18 choices.](https://github.com/mazurowski-lab/finetune-SAM/blob/main/finetune_combination_v3.png)
 
 
+🥰Hi guys, since my github is not linked to my work email thus i might not reply to issues or questions quickly. Feel free to email me: hanxue.gu@duke.edu.
+
+
 Based on our extensive experiments, we found that:
 1.  fine-tuning SAM leads to slightly better performance than previous segmentation methods.
 2. fine-tuning strategies that use parameter-efficient learning in both the encoder and decoder are superior to other strategies.
