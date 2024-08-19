@@ -130,6 +130,8 @@ def train_model(trainloader,valloader,dir_checkpoint,epochs):
                     lr_ = args.lr * (1.0 - shift_iter / max_iterations) ** 0.9  # learning rate adjustment depends on the max iterations
                     for param_group in optimizer.param_groups:
                         param_group['lr'] = lr_
+                else:
+                    lr_ = args.lr
 
             train_loss += loss.item()
             iter_num+=1
