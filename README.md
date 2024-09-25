@@ -259,7 +259,7 @@ We built these codes based on the following:
 5. [LoRA for SAM](https://github.com/JamesQFreeman/Sam_LoRA)
 
 ## Citation
-Please cite our paper if you use our code or reference our work:
+Please cite our paper if you find our codes or paper helpful, we really appreciate it [🥹 citation, please, cry cry]:
 ```bib
 @misc{gu2024build,
       title={How to build the best medical image segmentation algorithm using foundation models: a comprehensive empirical study with Segment Anything Model}, 
