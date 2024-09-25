@@ -1,14 +1,13 @@
 # Finetune SAM on your customized medical imaging dataset
 Authors: [Hanxue Gu*](https://scholar.google.com/citations?hl=en&user=aGjCpQUAAAAJ&view_op=list_works&sortby=pubdate), [Haoyu Dong*](https://scholar.google.com/citations?user=eZVEUCIAAAAJ&hl=en), [Jichen Yang](https://scholar.google.com/citations?user=jGv3bRUAAAAJ&hl=en), [Maciej A. Mazurowski](https://scholar.google.com/citations?user=HlxjJPQAAAAJ&hl=en)
 
+**Notice:** 🥰Hi guys, since my github is not linked to my work email thus i might not reply to issues or questions quickly. Feel free to email me if you meet issues when using this repo, and i am glad to help. Here is my email: hanxue.gu@duke.edu.]
+
 This is the official code for our paper: [How to build the best medical image segmentation algorithm using foundation models: a comprehensive empirical study with Segment Anything Model](https://arxiv.org/abs/2404.09957), where we explore three popular scenarios when fine-tuning foundation models to customized datasets in the medical imaging field: (1) only a single labeled dataset; (2) multiple labeled datasets for different tasks; and (3) multiple labeled and unlabeled datasets; and we design three common experimental setups, as shown in figure 1.
 ![Fig1: Overview of general fine-tuning strategies based on different levels of dataset availability.](https://github.com/mazurowski-lab/finetune-SAM/blob/main/finetune_strategy_v9.png)
 
 Our work summarizes and evaluates existing fine-tuning strategies with various backbone architectures,  model components, and fine-tuning algorithms across 18 combinations, and 17 datasets covering all common radiology modalities. 
 ![Fig2: Visualization of task-specific fine-tuning architectures selected in our study: including 3 encoder architecture $\times$ 2 model components $\times$ 3 vanilla/PEFT methods = 18 choices.](https://github.com/mazurowski-lab/finetune-SAM/blob/main/finetune_combination_v3.png)
-
-
-🥰Hi guys, since my github is not linked to my work email thus i might not reply to issues or questions quickly. Feel free to email me: hanxue.gu@duke.edu.
 
 
 Based on our extensive experiments, we found that:
