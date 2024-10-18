@@ -177,19 +177,20 @@ class Public_dataset(Dataset):
         if self.if_prompt:
             # Assuming get_first_prompt and get_top_boxes functions are defined and handle prompt creation
             if self.prompt_type == 'point':
-                prompt, mask_now = get_first_prompt(msk.numpy(), self.region_type)
+                prompt, mask_now = get_first_prompt(msk.numpy()[0], region_type=self.region_type)
                 pc = torch.tensor(prompt[:, :2], dtype=torch.float)
                 pl = torch.tensor(prompt[:, -1], dtype=torch.float)
                 msk = torch.unsqueeze(torch.tensor(mask_now,dtype=torch.long),0)
                 output.update({'point_coords': pc, 'point_labels': pl,'mask':msk})
             elif self.prompt_type == 'box':
-                prompt, mask_now = get_top_boxes(msk.numpy(), self.region_type)
+                print(msk.shape,msk.numpy()[0].shape)
+                prompt, mask_now = get_top_boxes(msk.numpy()[0], region_type=self.region_type)
                 box = torch.tensor(prompt, dtype=torch.float)
                 # the ground truth are only the selected masks
                 msk = torch.unsqueeze(torch.tensor(mask_now,dtype=torch.long),0)
                 output.update({'boxes': box,'mask':msk})
             elif self.prompt_type == 'hybrid':
-                point_prompt, _ = get_first_prompt(msk.numpy(), self.region_type)
+                point_prompt, _ = get_first_prompt(msk[0].numpy(), self.region_type)
                 box_prompt, _ = get_top_boxes(msk.numpy(), this.region_type)
                 pc = torch.tensor(point_prompt[:, :2], dtype=torch.float)
                 pl = torch.tensor(point_prompt[:, -1], dtype=torch.float)
